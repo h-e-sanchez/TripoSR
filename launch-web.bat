@@ -5,7 +5,7 @@
 :: ============================================================
 
 :: --- Configuracion centralizada ------------------------------
-set "VENV_PY=C:\Users\PC\venvs\triposr\Scripts\python.exe"
+set "VENV_PY=%USERPROFILE%\venvs\triposr\Scripts\python.exe"
 set "APP_DIR=%~dp0"
 set "APP_URL=http://127.0.0.1:7860"
 :: -------------------------------------------------------------
