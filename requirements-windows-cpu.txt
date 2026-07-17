@@ -1,0 +1,27 @@
+# Requirements adaptados para Windows + CPU (sin toolchain C++ ni CUDA)
+# Cambios vs requirements.txt original:
+#   - torchmcubes (requiere compilar C++/CUDA) -> PyMCubes (wheel precompilado)
+#     * acompañado del parche en tsr/models/isosurface.py
+#   - numpy pineado <2 por compatibilidad del ecosistema
+#   - torch se instala aparte desde el index CPU de PyTorch:
+#     pip install torch --index-url https://download.pytorch.org/whl/cpu
+#   - onnxruntime se instala aparte (rembg ya no lo declara): pip install onnxruntime
+#   - Stack web pineado en conjunto: gradio 4.44.1 requiere las versiones
+#     contemporáneas de fastapi/starlette/pydantic (las modernas rompen
+#     templates y el esquema de la API)
+numpy==1.26.4
+omegaconf==2.3.0
+Pillow==10.1.0
+einops==0.7.0
+PyMCubes==0.1.6
+transformers==4.44.2
+huggingface-hub==0.25.2
+trimesh==4.0.5
+rembg
+imageio[ffmpeg]
+gradio==4.44.1
+fastapi==0.115.6
+starlette==0.41.3
+pydantic==2.10.6
+xatlas==0.0.9
+moderngl==5.10.0

@@ -3,7 +3,7 @@ from typing import Callable, Optional, Tuple
 import numpy as np
 import torch
 import torch.nn as nn
-from torchmcubes import marching_cubes
+import mcubes
 
 
 class IsosurfaceHelper(nn.Module):
@@ -18,7 +18,7 @@ class MarchingCubeHelper(IsosurfaceHelper):
     def __init__(self, resolution: int) -> None:
         super().__init__()
         self.resolution = resolution
-        self.mc_func: Callable = marching_cubes
+        self.mc_func: Callable = mcubes.marching_cubes
         self._grid_vertices: Optional[torch.FloatTensor] = None
 
     @property
@@ -42,11 +42,9 @@ class MarchingCubeHelper(IsosurfaceHelper):
         level: torch.FloatTensor,
     ) -> Tuple[torch.FloatTensor, torch.LongTensor]:
         level = -level.view(self.resolution, self.resolution, self.resolution)
-        try:
-            v_pos, t_pos_idx = self.mc_func(level.detach(), 0.0)
-        except AttributeError:
-            print("torchmcubes was not compiled with CUDA support, use CPU version instead.")
-            v_pos, t_pos_idx = self.mc_func(level.detach().cpu(), 0.0)
-        v_pos = v_pos[..., [2, 1, 0]]
+        # PyMCubes (CPU) en lugar de torchmcubes: evita compilar extensiones C++ en Windows
+        v_pos_np, t_pos_idx_np = self.mc_func(level.detach().cpu().numpy(), 0.0)
+        v_pos = torch.from_numpy(v_pos_np.astype(np.float32))
+        t_pos_idx = torch.from_numpy(t_pos_idx_np.astype(np.int64))
         v_pos = v_pos / (self.resolution - 1.0)
         return v_pos.to(level.device), t_pos_idx.to(level.device)

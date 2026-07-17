@@ -1,79 +1,67 @@
-# TripoSR
+# triposr — pipeline local imagen→3D en CPU
 
-<a href="https://www.tripo3d.ai/research/triposr"><img src="https://img.shields.io/badge/Technical_Blog-gray?logo=data:image/svg%2bxml;base64,PHN2ZyB3aWR0aD0iNjUiIGhlaWdodD0iNjUiIHZpZXdCb3g9IjAgMCA2NSA2NSIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTkuNDk5MSA5LjYzNDc3TDE2LjQzNzQgMjEuNDU1NkMxNi40MzkzIDIxLjQ1ODkgMTYuNDQxMiAyMS40NjIyIDE2LjQ0MzEgMjEuNDY1NUwzMC4yNjU4IDQ1LjA1NDhDMzEuNTMyNyA0Ny4yMTY3IDM0LjcwNDUgNDcuMjE2NyAzNS45NzE0IDQ1LjA1NDhMNDkuMzg2MiAyMi4xNjE2SDU5LjQ2MThMNDEuMjY2IDUzLjE2MkMzNy42NDQ5IDU5LjMzMTMgMjguNTkyMyA1OS4zMzEzIDI0Ljk3MTIgNTMuMTYyTDYuNjM5NjcgMjEuOTMwMkM0LjAyNCAxNy40NzM5IDUuNjU5NTYgMTIuMjEyNyA5LjQ5OTEgOS42MzQ3N1oiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik0yMC4xMTIxIDE2LjYwODdIMzQuNjkyNkwyOC42MjIgMjcuMDQ0MkMyOC4yMDMzIDI3Ljc2NCAyOC4yMDgzIDI4LjY0OTIgMjguNjM1MSAyOS4zNjQ0TDMxLjA1MjcgMzMuNDE1MUMzMS45NjU0IDM0Ljk0NDUgMzQuMjE2MyAzNC45MzY1IDM1LjExNzggMzMuNDAwNkw0NC45NzM5IDE2LjYwODdINDYuOTQyTDQ2Ljk0NTUgMTYuNjA4N0g2MC44NDQ2QzYwLjQ4MzIgMTIuMDU4NyA1Ni42NzMxIDguMDQ4ODMgNTEuNDUwOSA4LjA0ODgzTDE1LjA4NzkgOC4wNDg4M0wyMC4xMTIxIDE2LjYwODdaIiBmaWxsPSIjRjhDRjAwIi8+Cjwvc3ZnPgo="></a> <a href="https://huggingface.co/spaces/stabilityai/TripoSR"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20HuggingFace-Demo-orange"></a> <a href="https://arxiv.org/abs/2403.02151"><img src="https://img.shields.io/badge/Arxiv-2403.02151-B31B1B.svg"></a> <a href="https://discord.gg/mvS9mCfMnQ"><img src="https://img.shields.io/badge/Discord-%235865F2.svg?logo=discord&logoColor=white"></a>
+> *De una foto a un modelo `.glb` en ~34 segundos, corriendo 100 % en CPU: generación 3D local sin GPU NVIDIA, sin CUDA y sin servicios cloud.*
 
-<div align="center">
-  <img src="figures/teaser800.gif" alt="Teaser Video">
-</div>
+Adaptamos [TripoSR](https://github.com/VAST-AI-Research/TripoSR) para ejecutarse en hardware de escritorio estándar (Windows 10, CPU Intel, GPU AMD RX 6600), con interfaz web Gradio y CLI. Esta carpeta es un clon del repositorio oficial con los ajustes necesarios para Windows + CPU.
 
-This is the official codebase for **TripoSR**, a state-of-the-art open-source model for **fast** feedforward 3D reconstruction from a single image, collaboratively developed by [Tripo AI](https://www.tripo3d.ai/) and [Stability AI](https://stability.ai/).
-<br><br>
-Leveraging the principles of the [Large Reconstruction Model (LRM)](https://yiconghong.me/LRM/), TripoSR brings to the table key advancements that significantly boost both the speed and quality of 3D reconstruction. Our model is distinguished by its ability to rapidly process inputs, generating high-quality 3D models in less than 0.5 seconds on an NVIDIA A100 GPU. TripoSR has exhibited superior performance in both qualitative and quantitative evaluations, outperforming other open-source alternatives across multiple public datasets. The figures below illustrate visual comparisons and metrics showcasing TripoSR's performance relative to other leading models. Details about the model architecture, training process, and comparisons can be found in this [technical report](https://arxiv.org/abs/2403.02151).
+## Características de ingeniería
 
-<!--
-<div align="center">
-  <img src="figures/comparison800.gif" alt="Teaser Video">
-</div>
--->
-<p align="center">
-    <img width="800" src="figures/visual_comparisons.jpg"/>
-</p>
+- **Inferencia 100 % CPU:** parche en `tsr/models/isosurface.py` que reemplaza `torchmcubes` (requiere compilar C++/CUDA) por `PyMCubes` con wheel precompilado — cero compilación, cero toolchain.
+- **Dependencias pineadas y reproducibles:** `requirements-windows-cpu.txt` congela el combo `gradio 4.44.1 + fastapi 0.115.6 + starlette 0.41.3 + pydantic 2.10.6`; versiones modernas de starlette/pydantic rompen la UI de Gradio 4.x.
+- **Entorno desacoplado de OneDrive:** el venv vive en `C:\Users\PC\venvs\triposr`, evitando la sincronización de miles de archivos de paquetes.
+- **Doble vía de ejecución:** interfaz web para uso interactivo y CLI para automatización por lotes.
 
-<p align="center">
-    <img width="450" src="figures/scatter-comparison.png"/>
-</p>
+## Guía de uso rápido
 
+### Interfaz web (recomendada)
 
-The model is released under the MIT license, which includes the source code, pretrained models, and an interactive online demo. Our goal is to empower researchers, developers, and creatives to push the boundaries of what's possible in 3D generative AI and 3D content creation.
+Doble clic en `launch-web.bat`, o desde la terminal:
 
-## Getting Started
-### Installation
-- Python >= 3.8
-- Install CUDA if available
-- Install PyTorch according to your platform: [https://pytorch.org/get-started/locally/](https://pytorch.org/get-started/locally/) **[Please make sure that the locally-installed CUDA major version matches the PyTorch-shipped CUDA major version. For example if you have CUDA 11.x installed, make sure to install PyTorch compiled with CUDA 11.x.]**
-- Update setuptools by `pip install --upgrade setuptools`
-- Install other dependencies by `pip install -r requirements.txt`
-
-### Manual Inference
-```sh
-python run.py examples/chair.png --output-dir output/
-```
-This will save the reconstructed 3D model to `output/`. You can also specify more than one image path separated by spaces. The default options takes about **6GB VRAM** for a single image input.
-
-If you would like to output a texture instead of vertex colors, use the `--bake-texture` option. You may also use `--texture-resolution` to specify the resolution in pixels of the output texture.
-
-For detailed usage of this script, use `python run.py --help`.
-
-### Local Gradio App
-```sh
-python gradio_app.py
+```batch
+launch-web.bat
 ```
 
-## Troubleshooting
-> AttributeError: module 'torchmcubes_module' has no attribute 'mcubes_cuda'
+El script valida el entorno y levanta la UI en **http://127.0.0.1:7860**. Sube una imagen, el fondo se remueve automáticamente y descargas el modelo como `.glb` (color por vértice).
 
-or
+Controles de calidad disponibles en la UI:
 
-> torchmcubes was not compiled with CUDA support, use CPU version instead.
+- **Resolución Marching Cubes** (32–512, default 256): detalle geométrico de la malla; más alto = más polígonos y más tiempo (sobre ~320 el retorno disminuye).
+- **Foreground Ratio** (0.5–1.0): encuadre del objeto antes de inferir; probar 0.75–0.90 puede mejorar la reconstrucción.
+- **Bake de textura UV** (512–4096 px): en vez de color por vértice, hornea un atlas de textura y entrega un ZIP con `OBJ + MTL + PNG` listo para arrastrar a Blender (la textura carga sola). El rasterizado corre por OpenGL sobre la GPU AMD.
+- **Estado**: reporta tiempo de generación y conteo de caras/vértices de cada corrida.
 
-This is because `torchmcubes` is compiled without CUDA support. Please make sure that 
+Equivalente manual:
 
-- The locally-installed CUDA major version matches the PyTorch-shipped CUDA major version. For example if you have CUDA 11.x installed, make sure to install PyTorch compiled with CUDA 11.x.
-- `setuptools>=49.6.0`. If not, upgrade by `pip install --upgrade setuptools`.
-
-Then re-install `torchmcubes` by:
-
-```sh
-pip uninstall torchmcubes
-pip install git+https://github.com/tatsy/torchmcubes.git
+```powershell
+C:\Users\PC\venvs\triposr\Scripts\python.exe gradio_app.py
 ```
 
-## Citation
-```BibTeX
-@article{TripoSR2024,
-  title={TripoSR: Fast 3D Object Reconstruction from a Single Image},
-  author={Tochilkin, Dmitry and Pankratz, David and Liu, Zexiang and Huang, Zixuan and and Letts, Adam and Li, Yangguang and Liang, Ding and Laforte, Christian and Jampani, Varun and Cao, Yan-Pei},
-  journal={arXiv preprint arXiv:2403.02151},
-  year={2024}
-}
+### CLI (automatización)
+
+```powershell
+C:\Users\PC\venvs\triposr\Scripts\python.exe run.py <imagen> --device cpu --output-dir output --model-save-format glb
 ```
+
+Salida en `output/0/mesh.glb`. Rendimiento verificado: ~34 s de inferencia por imagen.
+
+### Reinstalación del entorno
+
+```powershell
+python -m venv C:\Users\PC\venvs\triposr
+C:\Users\PC\venvs\triposr\Scripts\pip install torch --index-url https://download.pytorch.org/whl/cpu
+C:\Users\PC\venvs\triposr\Scripts\pip install -r requirements-windows-cpu.txt
+C:\Users\PC\venvs\triposr\Scripts\pip install onnxruntime
+```
+
+> **Importante:** usa siempre el Python del venv y no actualices los paquetes pineados del stack web.
+
+## Créditos y referencias
+
+- **[TripoSR](https://github.com/VAST-AI-Research/TripoSR)** — Tripo AI × Stability AI. Reconstrucción 3D feedforward desde una sola imagen. Licencia MIT. Paper: [arXiv:2403.02151](https://arxiv.org/abs/2403.02151). Este repositorio es un fork de trabajo; el README original está disponible en el historial (`git show HEAD:README.md`).
+- **[TRELLIS.2](https://github.com/microsoft/TRELLIS.2)** — Microsoft Research. Lo evaluamos como motor principal por su calidad PBR, pero requiere GPU NVIDIA con 24 GB de VRAM, CUDA y Linux. Para esa calidad sin hardware dedicado, la ruta es su [Space en Hugging Face](https://huggingface.co/spaces/microsoft/TRELLIS.2) o GPU cloud.
+
+Los pesos del modelo se descargan automáticamente desde Hugging Face en la primera ejecución.
+
+---
+
+*Optimizamos para lo que el hardware disponible puede entregar hoy: iteración local rápida primero, calidad cloud cuando el proyecto lo exija.*
